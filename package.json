@@ -1,0 +1,38 @@
+{
+  "name": "mogwai",
+  "version": "0.0.1",
+  "description": "",
+  "main": "lib/index.js",
+  "author": "Maximilian Schuler",
+  "license": "MIT",
+  "scripts": {
+    "test": "jest",
+    "clean": "shx rm -rf _bundles lib lib-esm",
+    "build": "npm run clean && tsc && tsc -m es6 --outDir lib-esm && webpack"
+  },
+  "dependencies": {
+    "hibitset-js": "^1.0.0"
+  },
+  "devDependencies": {
+    "awesome-typescript-loader": "^3.2.3",
+    "jest": "^21.1.0",
+    "jest-cli": "^21.1.0",
+    "shx": "^0.2.2",
+    "source-map-loader": "^0.2.1",
+    "typescript": "^2.5.2",
+    "webpack": "^3.6.0"
+  },
+  "jest": {
+    "moduleFileExtensions": [
+      "ts",
+      "tsx",
+      "js"
+    ],
+    "transform": {
+      "^.+\\.(ts|tsx)$": "<rootDir>/jest-preprocessor.js"
+    },
+    "testMatch": [
+      "**/*.spec.(ts|tsx|js)"
+    ]
+  }
+}
