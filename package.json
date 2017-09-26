@@ -1,7 +1,7 @@
 {
-  "name": "mogwai",
+  "name": "mogwai-ecs",
   "version": "0.0.1",
-  "description": "",
+  "description": "A graph traversal enabled Entity Component System.",
   "main": "lib/index.js",
   "author": "Maximilian Schuler",
   "license": "MIT",
