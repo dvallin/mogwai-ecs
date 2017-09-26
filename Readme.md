@@ -22,6 +22,16 @@ W.fetch((t: M.VertexTraverser) => t
     .out("has").hasLabel("window"), "dimensions")
   .collect();
 ```
+Graph traversal that creates co-author edges for vertex v1:
+```javascript
+    G = new Graph();
+    createGraphWith
+    G.V(v1).as("v1")
+      .let("notA", (t) => t.not())
+      .let("co-authors", (t) => t.out("author-of").in("author-of") )
+      .and("co-authors", "notA").as("co-authors-of-v1")
+.edgeBuilder().from("co-authors-of-v1").to("v1").label("co-author").build();
+```
 Refer to the tests for actual usages and for many examples on graph traversal and creation.
 
 ## Motivation
