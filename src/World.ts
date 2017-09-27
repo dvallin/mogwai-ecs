@@ -65,6 +65,12 @@ export class EntityBuilder {
     return this;
   }
 
+  invRel(relation: string, other: number) {
+    const e = this.world.graph.addEdge(other, this.entity);
+    this.world.graph.addEdgeLabel(e, relation, undefined);
+    return this;
+  }
+
   build(): number {
     return this.entity;
   }

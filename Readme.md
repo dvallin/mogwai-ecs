@@ -54,7 +54,7 @@ Mogwai is heavily inspired by [tinkerpop](http://tinkerpop.apache.org/)'s Gremli
 Add to package.json
 ```json
 "dependencies": {
-  "mogwai-ecs": "^0.1.2"
+  "mogwai-ecs": "^0.1.3"
 },
 ```
 or just:
@@ -70,6 +70,10 @@ yarn add mogwai-ecs
 
 ```
 npm install && npm test
+```
+or
+```
+jest --watch
 ```
 
 ## License

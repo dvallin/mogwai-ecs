@@ -48,7 +48,7 @@ describe("World", () => {
     expect(rooms[1].entity).toEqual(4);
     expect(rooms[2].entity).toEqual(6);
     expect(rooms[3].entity).toEqual(7);
-  })
+  });
 
   it("fetches entities by components with data", () => {
     const rooms = W.fetch(t => t.hasLabel("room", "dimensions"))
@@ -64,7 +64,7 @@ describe("World", () => {
     expect(rooms[0].dimensions).toEqual({w: 10, h: 10});
     expect(rooms[1].dimensions).toEqual({w: 10, h: 10});
     expect(rooms[2].dimensions).toEqual({w: 20, h: 20});
-  })
+  });
 
   it("filters relational data", () => {
     // rooms with windows (not optimized)
