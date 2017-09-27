@@ -51,9 +51,15 @@ Mogwai is heavily inspired by [tinkerpop](http://tinkerpop.apache.org/)'s Gremli
 
 ## Installation
 
-checkout the project and
+Add to package.json
+```json
+"dependencies": {
+  "mogwai-ecs": "^0.1.2"
+},
 ```
-npm install && npm test
+or just:
+```
+yarn add mogwai-ecs
 ```
 
 ## API Reference
