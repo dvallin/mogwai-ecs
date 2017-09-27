@@ -2,11 +2,19 @@ import { Graph } from "./Graph"
 import { Storage, NullStorage, VectorStorage } from "./Storage";
 import { VertexTraverser  } from "./Traverser";
 
+
+export interface System {
+  fetch: (world: World) => Fetcher;
+  execute: (entity: object, world: World) => void;
+}
+
 export class World {
   graph: Graph;
+  systems: Map<string, System>;
 
   constructor() {
     this.graph = new Graph();
+    this.systems = new Map();
   }
 
   registerComponent(name: string, storage: Storage = new NullStorage()) {
@@ -15,6 +23,17 @@ export class World {
 
   registerRelation(name: string) {
     this.graph.registerEdgeLabel(name);
+  }
+
+  registerSystem(name: string, system: System) {
+    this.systems[name] = system;
+  }
+
+  run() {
+    this.systems.forEach(system => {
+      system.fetch(this).stream()
+        .each(entity => system.execute(entity, this));
+    });
   }
 
   entity(): EntityBuilder {
@@ -58,12 +77,14 @@ export class EntityBuilder {
 export class Fetcher {
   graph: Graph;
   traverser: VertexTraverser;
+  components: Array<string>;
   sub: Array<[string, (t: VertexTraverser) => VertexTraverser, Array<string>]>
 
   constructor(graph: Graph, v: number) {
     this.traverser = graph.V(v);
     this.graph = graph;
     this.sub = [];
+    this.components = [];
   }
 
   fetch(f: (t: VertexTraverser) => VertexTraverser): Fetcher {
@@ -76,24 +97,30 @@ export class Fetcher {
     return this;
   }
 
-  stream(...components: Array<string>) {
+  withComponents(...components: Array<string>): Fetcher {
+    this.components = components;
+    return this;
+  }
+
+  stream() {
     return this.traverser.stream()
       .map(entity => {
         const subcomponents = {};
         this.sub.forEach(s => {
           subcomponents[s[0]] = new Fetcher(this.graph, entity)
             .fetch(s[1])
-            .collect(...s[2]);
+            .withComponents(...s[2])
+            .collect();
         });
         return {
           entity,
-          ...this.graph.getVertex(entity, ...components),
+          ...this.graph.getVertex(entity, ...this.components),
           ...subcomponents
         };
       });
   }
 
-  collect(...components: Array<string>) {
-    return this.stream(...components).toArray();
+  collect() {
+    return this.stream().toArray();
   }
 }

@@ -1,4 +1,4 @@
-import { World } from "./World";
+import { World, System } from "./World";
 import { VectorStorage } from "./Storage";
 import { VertexTraverser  } from "./Traverser";
 
@@ -52,7 +52,8 @@ describe("World", () => {
 
   it("fetches entities by components with data", () => {
     const rooms = W.fetch(t => t.hasLabel("room", "dimensions"))
-      .collect("room", "dimensions");
+      .withComponents("room", "dimensions")
+      .collect();
     expect(rooms.length).toEqual(3);
     expect(rooms[0].entity).toEqual(0);
     expect(rooms[1].entity).toEqual(4);
@@ -117,4 +118,13 @@ describe("World", () => {
     expect(rooms[0].windows[0].entity).toEqual(2);
     expect(rooms[0].windows[0].dimensions).toEqual({w: 10, h: 10});
   });
+
+  it("can execute systems", () => {
+    const s = {
+      fetch: (w: World) => w.fetch(t => t.hasLabel("window")),
+      execute: (e: object, w: World) => expect(e.entity).toBe(1),
+    };
+    W.registerSystem("system1", s);
+    W.run();
+  })
 });
