@@ -32,7 +32,16 @@ G.V(v1).as("v1")
   .and("co-authors", "notA").as("co-authors-of-v1")
   .edgeBuilder().from("v1").to("co-authors-of-v1").label("co-author").build();
 ```
-Refer to the tests for actual usages and for many examples on graph traversal and creation.
+A system that is registered on a world and can be run:
+```javascript
+const system = {
+  execute: (w: World) =>  w.fetch(t => t.hasLabel("window")).stream()
+    .each(e => console.log(e)), // do something for each window.
+};
+W.registerSystem("system1", system);
+W.run();
+```
+Refer to the tests for actual usages and for many examples on graph traversal and graph creation.
 
 ## Motivation
 

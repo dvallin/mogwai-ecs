@@ -119,12 +119,10 @@ describe("World", () => {
     expect(rooms[0].windows[0].dimensions).toEqual({w: 10, h: 10});
   });
 
-  it("can execute systems", () => {
-    const s = {
-      fetch: (w: World) => w.fetch(t => t.hasLabel("window")),
-      execute: (e: object, w: World) => expect(e.entity).toBe(1),
-    };
-    W.registerSystem("system1", s);
+  it("executes systems", () => {
+    const execute = jest.fn();
+    W.registerSystem("system1", {execute});
     W.run();
-  })
+    expect(execute).toHaveBeenCalledWith(W);
+  });
 });

@@ -4,8 +4,7 @@ import { VertexTraverser  } from "./Traverser";
 
 
 export interface System {
-  fetch: (world: World) => Fetcher;
-  execute: (entity: object, world: World) => void;
+  execute: (world: World) => void;
 }
 
 export class World {
@@ -26,14 +25,11 @@ export class World {
   }
 
   registerSystem(name: string, system: System) {
-    this.systems[name] = system;
+    this.systems.set(name, system);
   }
 
   run() {
-    this.systems.forEach(system => {
-      system.fetch(this).stream()
-        .each(entity => system.execute(entity, this));
-    });
+    this.systems.forEach(system => system.execute(this));
   }
 
   entity(): EntityBuilder {
