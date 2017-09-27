@@ -1,6 +1,6 @@
 {
   "name": "mogwai-ecs",
-  "version": "0.0.1",
+  "version": "0.1.1",
   "description": "A graph traversal enabled Entity Component System.",
   "main": "lib/index.js",
   "author": "Maximilian Schuler",
@@ -11,7 +11,8 @@
     "build": "npm run clean && tsc && tsc -m es6 --outDir lib-esm && webpack"
   },
   "dependencies": {
-    "hibitset-js": "^1.0.0"
+    "hibitset-js": "^1.0.0",
+    "lazy.js": "^0.5.0"
   },
   "devDependencies": {
     "awesome-typescript-loader": "^3.2.3",

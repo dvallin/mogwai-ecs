@@ -43,19 +43,26 @@ describe("World", () => {
 
   it("fetches entities by component", () => {
     const rooms = W.fetch(t => t.hasLabel("room")).collect();
-    expect(rooms.entities).toEqual([0, 4, 6, 7])
+    expect(rooms.length).toEqual(4);
+    expect(rooms[0].entity).toEqual(0);
+    expect(rooms[1].entity).toEqual(4);
+    expect(rooms[2].entity).toEqual(6);
+    expect(rooms[3].entity).toEqual(7);
   })
 
   it("fetches entities by components with data", () => {
     const rooms = W.fetch(t => t.hasLabel("room", "dimensions"))
       .collect("room", "dimensions");
-    expect(rooms.entities).toEqual([0, 4, 6]);
-    expect(rooms.components[0].room).toEqual(null);
-    expect(rooms.components[0].dimensions).toEqual({w: 10, h: 10});
-    expect(rooms.components[1].room).toEqual(null);
-    expect(rooms.components[1].dimensions).toEqual({w: 10, h: 10});
-    expect(rooms.components[2].room).toEqual(null);
-    expect(rooms.components[2].dimensions).toEqual({w: 20, h: 20});
+    expect(rooms.length).toEqual(3);
+    expect(rooms[0].entity).toEqual(0);
+    expect(rooms[1].entity).toEqual(4);
+    expect(rooms[2].entity).toEqual(6);
+    expect(rooms[0].room).toEqual(null);
+    expect(rooms[1].room).toEqual(null);
+    expect(rooms[2].room).toEqual(null);
+    expect(rooms[0].dimensions).toEqual({w: 10, h: 10});
+    expect(rooms[1].dimensions).toEqual({w: 10, h: 10});
+    expect(rooms[2].dimensions).toEqual({w: 20, h: 20});
   })
 
   it("filters relational data", () => {
@@ -66,7 +73,8 @@ describe("World", () => {
       .out("has").hasLabel("window")
       .in("has").in("has")
     ).collect();
-    expect(rooms.entities).toEqual([0]);
+    expect(rooms.length).toEqual(1);
+    expect(rooms[0].entity).toEqual(0);
 
     // rooms with windows (optimized) or without walls
     const rooms2 = W.fetch((t: M.VertexTraverser) => t
@@ -74,15 +82,19 @@ describe("World", () => {
       .let("b", t => t.hasLabel("wall").in().not().hasLabel("room"))
       .or("a", "b")
     ).collect();
-    expect(rooms2.entities).toEqual([0, 6, 7]);
+    expect(rooms2.length).toEqual(3);
+    expect(rooms2[0].entity).toEqual(0);
+    expect(rooms2[1].entity).toEqual(6);
+    expect(rooms2[2].entity).toEqual(7);
 
     // window-less walls of room 0
-    const rooms2 = W.fetchOn(0, (t: M.VertexTraverser) => t
+    const rooms3 = W.fetchOn(0, (t: M.VertexTraverser) => t
       .out("has").hasLabel("wall").as("walls-of-0")
       .let("no-window-walls", t => t.V().hasLabel("window").in("has").not())
       .and("no-window-walls", "walls-of-0")
     ).collect();
-    expect(rooms2.entities).toEqual([3]);
+    expect(rooms3.length).toEqual(1);
+    expect(rooms3[0].entity).toEqual(3);
   });
 
   it("fetches related entities", () => {
@@ -96,9 +108,13 @@ describe("World", () => {
         .out("has").hasLabel("wall")
         .out("has").hasLabel("window"), "dimensions")
       .collect();
-    expect(rooms.entities).toEqual([0]);
-    expect(rooms.walls.entities).toEqual([1,3]);
-    expect(rooms.windows.entities).toEqual([2]);
-    expect(rooms.windows.components[0].dimensions).toEqual({w: 10, h: 10});
+    expect(rooms.length).toEqual(1);
+    expect(rooms[0].entity).toEqual(0);
+    expect(rooms[0].walls.length).toEqual(2);
+    expect(rooms[0].walls[0].entity).toEqual(1);
+    expect(rooms[0].walls[1].entity).toEqual(3);
+    expect(rooms[0].windows.length).toEqual(1);
+    expect(rooms[0].windows[0].entity).toEqual(2);
+    expect(rooms[0].windows[0].dimensions).toEqual({w: 10, h: 10});
   });
 });

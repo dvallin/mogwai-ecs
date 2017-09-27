@@ -1,6 +1,16 @@
 import { StorageMap } from "./Storage";
 import { Graph } from "./Graph";
 import * as B from "hibitset-js";
+import * as L from "lazy.js";
+
+const iterate = (mask) => {
+  const Lazy = L.strict();
+  const iter = B.createIterator(mask);
+  return Lazy
+    .generate(() => iter.next())
+    .takeWhile(a => !a.done)
+    .map(a => a.value);
+}
 
 const serialize = (mask) => {
   const result = [];
@@ -25,6 +35,10 @@ export abstract class Traverser {
 
   toList(): Array<number> {
     return serialize(this.mask);
+  }
+
+  stream() {
+    return iterate(this.mask);
   }
 
   abstract isEdge(): boolean;

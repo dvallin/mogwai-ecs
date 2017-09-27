@@ -2,19 +2,6 @@ import { Graph } from "./Graph"
 import { Storage, NullStorage, VectorStorage } from "./Storage";
 import { VertexTraverser  } from "./Traverser";
 
-function getIn(x, ks) {
-  for (let i = 0, n = ks.length; x != null && i < n; i++) {
-    const c = x[ks[i]];
-    if(c) {
-      x = c;
-    } else {
-      x[ks[i]] = {};
-      x = x[ks[i]];
-    }
-  }
-  return x;
-}
-
 export class World {
   graph: Graph;
 
@@ -89,16 +76,24 @@ export class Fetcher {
     return this;
   }
 
+  stream(...components: Array<string>) {
+    return this.traverser.stream()
+      .map(entity => {
+        const subcomponents = {};
+        this.sub.forEach(s => {
+          subcomponents[s[0]] = new Fetcher(this.graph, entity)
+            .fetch(s[1])
+            .collect(...s[2]);
+        });
+        return {
+          entity,
+          ...this.graph.getVertex(entity, ...components),
+          ...subcomponents
+        };
+      });
+  }
+
   collect(...components: Array<string>) {
-    const c = this.traverser.toList();
-    let result = { components: [] };
-    result["entities"] = c;
-    c.forEach(v => {
-      result.components.push(this.graph.getVertex(v, ...components));
-    });
-    c.forEach(v => this.sub.forEach(s =>
-        result[s[0]] = new Fetcher(this.graph, v).fetch(s[1]).collect(...s[2])
-    ));
-    return result;
+    return this.stream(...components).toArray();
   }
 }
