@@ -54,7 +54,7 @@ Mogwai is heavily inspired by [tinkerpop](http://tinkerpop.apache.org/)'s Gremli
 Add to package.json
 ```json
 "dependencies": {
-  "mogwai-ecs": "^0.1.3"
+  "mogwai-ecs": "^0.1.4"
 },
 ```
 or just:

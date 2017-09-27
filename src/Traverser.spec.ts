@@ -167,4 +167,16 @@ describe("Traverser", () => {
     expect(G.e).toBe(5);
     expect(G.E().hasLabel("contributer").toList().length).toBe(2);
   });
+
+  it("matches on values", () => {
+    const G = new Graph();
+    const v1 = G.addVertex();
+    const v2 = G.addVertex();
+    const v3 = G.addVertex();
+    G.registerVertexLabel("d", new VectorStorage);
+    G.addVertexLabel(v1, "d", {a: 10});
+    G.addVertexLabel(v2, "d", {a: 20});
+    const c = G.V().matchesValue("d", (d) => d && d.a > 10).toList();
+    expect(c).toEqual([v2]);
+  });
 });

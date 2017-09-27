@@ -36,6 +36,10 @@ export class World {
     return new EntityBuilder(this);
   }
 
+  traverse(v: number): VertexTraverser {
+    return this.graph.V(v);
+  }
+
   fetch(f: (t: VertexTraverser) => VertexTraverser): Fetcher {
     return new Fetcher(this.graph, undefined).fetch(f);
   }

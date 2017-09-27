@@ -128,6 +128,17 @@ export class VertexTraverser extends Traverser {
       this.vertexSnapshots, this.edgeSnapshots);
   }
 
+  matchesValue(key: string, matcher: (value: object) => boolean): VertexTraverser {
+    const values = this.graph.vertexLabels.get(key);
+    const mask = new B.BitSet(this.mask.size());
+    B.iterate(this.mask, (v) => {
+      if(matcher(values.get(v))) {
+        mask.add(v);
+      }
+    });
+    return new VertexTraverser(this.graph, mask, this.vertexSnapshots, this.edgeSnapshots);
+  }
+
   out(...labels: Array<string>): VertexTraverser {
     return this.outE(...labels).step("out");
   }
@@ -265,6 +276,17 @@ export class EdgeTraverser extends Traverser {
     });
     return new EdgeTraverser(this.graph, B.and(this.mask, B.or(...masks)),
       this.vertexSnapshots, this.edgeSnapshots);
+  }
+
+  matchesValue(key: string, matcher: (value: object) => boolean): EdgeTraverser {
+    const values = this.graph.edgeLabels.get(key);
+    const mask = new B.BitSet(this.mask.size());
+    B.iterate(this.mask, (e) => {
+      if(matcher(values.get(e))) {
+        mask.add(e);
+      }
+    });
+    return new EdgeTraverser(this.graph, mask, this.vertexSnapshots, this.edgeSnapshots);
   }
 
   in(): VertexTraverser {
