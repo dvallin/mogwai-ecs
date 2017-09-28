@@ -62,6 +62,15 @@ export class Graph {
     return result;
   }
 
+  getEdge(e: number, ...labels: Array<string>): object {
+    const result = [];
+    labels.forEach(label => {
+      result[label] = this.edgeLabels.get(label).get(e);
+    });
+    return result;
+  }
+
+
   V(v: number): VertexTraverser {
     if (v !== undefined) {
       const mask = new BitSet(v+1);
