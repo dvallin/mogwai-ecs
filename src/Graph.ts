@@ -1,4 +1,4 @@
-import { BitSet, one } from "hibitset-js";
+import { BitSet, HierarchicalBitset, one, and } from "hibitset-js";
 import { Storage, StorageMap, NullStorage, VectorStorage } from "./Storage";
 import { VertexTraverser, EdgeTraverser } from "./Traverser";
 
@@ -11,9 +11,9 @@ export class Graph {
   vertexLabels: StorageMap;
   edgeLabels: StorageMap;
 
-  constructor(v: number = 0, e: number = 0) {
-    this.v = v;
-    this.e = e;
+  constructor() {
+    this.v = 0;
+    this.e = 0;
     this.vertexLabels = new Map();
     this.edgeLabels = new Map();
     this.registerVertexLabel("out", new VectorStorage());
@@ -21,11 +21,11 @@ export class Graph {
     this.registerEdgeLabel("->", new VectorStorage());
   }
 
-  registerVertexLabel(name: string, storage: Storage = new NullStorage()) {
+  registerVertexLabel<T extends object>(name: string, storage: Storage = new NullStorage()) {
     this.vertexLabels.set(name, storage);
   }
 
-  registerEdgeLabel(name: string, storage: Storage = new NullStorage()) {
+  registerEdgeLabel<T extends object>(name: string, storage: Storage = new NullStorage()) {
     this.edgeLabels.set(name, storage);
   }
 
@@ -40,11 +40,11 @@ export class Graph {
     return this.e++;
   }
 
-  addVertexLabel(v: number, name: string, value: object) {
+  addVertexLabel<T extends object>(v: number, name: string, value: T = undefined) {
     this.vertexLabels.get(name).set(v, value);
   }
 
-  addEdgeLabel(e: number, name: string, value: object) {
+  addEdgeLabel<T extends object>(e: number, name: string, value: T = undefined) {
     this.edgeLabels.get(name).set(e, value);
   }
 
@@ -70,21 +70,26 @@ export class Graph {
     return result;
   }
 
-
-  V(v: number): VertexTraverser {
+  V(v: number = undefined,
+    vertexSnapshots: Map<string, HierarchicalBitset> = new Map(),
+    edgeSnapshots: Map<string, HierarchicalBitset> = new Map()): VertexTraverser {
     if (v !== undefined) {
       const mask = new BitSet(v+1);
-      mask.add(v);
-      return new VertexTraverser(this, mask, new Map(), new Map());
+      if(v < this.v) {
+        mask.add(v);
+      }
+      return new VertexTraverser(this, mask, vertexSnapshots, edgeSnapshots);
     } else {
-      return new VertexTraverser(this, one(this.v), new Map(), new Map());
+      return new VertexTraverser(this, one(this.v), vertexSnapshots, edgeSnapshots);
     }
   }
 
-  E(e: number): EdgeTraverser {
+  E(e: number = undefined): EdgeTraverser {
     if (e !== undefined) {
       const mask = new BitSet(e+1);
-      mask.add(e);
+      if(e < this.e) {
+        mask.add(e);
+      }
       return new EdgeTraverser(this, mask, new Map(), new Map());
     } else {
       return new EdgeTraverser(this, one(this.e), new Map(), new Map());

@@ -11,7 +11,7 @@ Fetching rooms with walls that have windows and resolving relational dependencie
 ```javascript
 const W = new World();
 createGraphWithRoomsWallsAndWindows(W);
-W.fetch((t: M.VertexTraverser) => t
+W.fetch().on((t: M.VertexTraverser) => t
   // rooms with windows
   .hasLabel("window").in().hasLabel("wall").in("has"))
   // subfetching starts from each vertex and applies the traverser.
@@ -35,7 +35,7 @@ G.V(v1).as("v1")
 A system that is registered on a world and can be run:
 ```javascript
 const system = {
-  execute: (w: World) =>  w.fetch(t => t.hasLabel("window")).stream()
+  execute: (w: World) =>  w.fetch().on(t => t.hasLabel("window")).stream()
     .each(e => console.log(e)), // do something for each window.
 };
 W.registerSystem("system1", system);

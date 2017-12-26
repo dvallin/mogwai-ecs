@@ -1,4 +1,4 @@
-import { Graph, and } from "./Graph";
+import { Graph } from "./Graph";
 import { VectorStorage } from "./Storage"
 
 describe("Traverser", () => {
@@ -25,6 +25,10 @@ describe("Traverser", () => {
     expect(G.V().out().out().in().out().first()).toBe(v3);
     expect(G.V().both().toList().length).toBe(3);
     expect(G.V().bothE().toList().length).toBe(2);
+
+    expect(G.E().in().toList().length).toBe(2);
+    expect(G.E().out().toList().length).toBe(2);
+    expect(G.E().both().toList().length).toBe(3);
   });
 
   it("traverses by filtering by labels", () => {
@@ -58,6 +62,10 @@ describe("Traverser", () => {
     expect(G.E().hasLabel("knows").toList().length).toBe(1);
     // and no edge is a person
     expect(G.E().hasLabel("person").toList().length).toBe(0);
+    // traversing "hates" edges in both directions 
+    expect(G.V().both("hates").toList().length).toBe(3);
+    // stepping into "hates" edges in both directions 
+    expect(G.V().bothE("hates").toList().length).toBe(2);
   });
 
   it("can query for labels and values", () => {
@@ -65,45 +73,51 @@ describe("Traverser", () => {
     G.registerVertexLabel("person", new VectorStorage());
     G.registerVertexLabel("language", new VectorStorage());
     G.registerEdgeLabel("knows");
-    G.registerEdgeLabel("hates");
+    G.registerEdgeLabel("hates", new VectorStorage());
 
     const v1 = G.addVertex();
-    G.addVertexLabel(v1, "person", "fred");
+    G.addVertexLabel(v1, "person", {name: "fred"});
     const v2 = G.addVertex();
-    G.addVertexLabel(v2, "person", "pablo");
+    G.addVertexLabel(v2, "person", {name: "pablo"});
 
     const v3 = G.addVertex();
-    G.addVertexLabel(v3, "language", "c++");
+    G.addVertexLabel(v3, "language", {name: "c++"});
 
     const e1 = G.addEdge(v1, v2);
     const e2 = G.addEdge(v1, v3);
     G.addEdgeLabel(e1, "knows");
-    G.addEdgeLabel(e1, "hates");
-    G.addEdgeLabel(e2, "hates");
+    G.addEdgeLabel(e1, "hates", {type: "a bit"});
+    G.addEdgeLabel(e2, "hates", {type: "a lot"});
 
+    // fred knows and hates things
+    expect(G.V(v1).outE().labels()).toEqual(["knows", "hates", "hates"]);
     // fred hates languages and people
     expect(G.V(v1).out("hates").labels()).toEqual(["person", "language"]);
     // the language he hates is c++
-    expect(G.V(v1).out("hates").values("language")).toEqual(["c++"]);
+    expect(G.V(v1).out("hates").values("language").map(v => v.name).toArray()).toEqual(["c++"]);
     // while he also hates pablo
-    expect(G.V(v1).out("hates").values()).toEqual(["pablo", "c++"]);
+    expect(G.V(v1).out("hates").values().map(v => v.name).toArray()).toEqual(["pablo", "c++"]);
     // also one thing is known and hated.
     expect(G.E().hasLabel("knows").hasLabel("hates").toList().length).toBe(1);
+    // also there is a lot and a bit of hate.
+    expect(G.E().values().map(v => v.type).toArray()).toEqual(["a bit", "a lot"]);
+    // also there is a lot and a bit of hate.
+    expect(G.E().values("hates").map(v => v.type).toArray()).toEqual(["a bit", "a lot"]);
     // at least he knows him
     expect(G.V(v1)
       .let("a", (t) => t.out("hates"))
       .let("b", (t) => t.out("knows"))
-      .and("a", "b").values()).toEqual(["pablo"]);
+      .and("a", "b").values().map(v => v.name).toArray()).toEqual(["pablo"]);
     // pablo is the only hated person
     expect(G.V()
       .let("a", (t) => t.out("hates"))
       .let("b", (t) => t.hasLabel("person"))
-      .and("a", "b").values()).toEqual(["pablo"]);
+      .and("a", "b").values().map(v => v.name).toArray()).toEqual(["pablo"]);
     // and fred the only hater
     expect(G.V()
       .let("a", (t) => t.in("hates"))
       .let("b", (t) => t.hasLabel("person"))
-      .and("a", "b").values()).toEqual(["fred"]);
+      .and("a", "b").values().map(v => v.name).toArray()).toEqual(["fred"]);
   });
 
   it("captures and selects intermediate results", () => {
@@ -152,7 +166,9 @@ describe("Traverser", () => {
     const v4 = G.addVertex();
     const e1 = G.addEdge(v1, v2);
     const e2 = G.addEdge(v3, v2);
-    const e3 = G.addEdge(v4, v2);
+
+    G.V(v4).as("a").V(v2).as("b").edgeBuilder().from("a").to("b").build();
+    const e3 = G.e - 1; // i know this is hacky
 
     G.registerEdgeLabel("d");
     G.registerEdgeLabel("contributer");
@@ -173,10 +189,15 @@ describe("Traverser", () => {
     const v1 = G.addVertex();
     const v2 = G.addVertex();
     const v3 = G.addVertex();
-    G.registerVertexLabel("d", new VectorStorage);
+    const e1 = G.addEdge(v1, v2);
+    const e2 = G.addEdge(v2, v3);
+    G.registerVertexLabel("d", new VectorStorage());
+    G.registerEdgeLabel("e", new VectorStorage())
     G.addVertexLabel(v1, "d", {a: 10});
     G.addVertexLabel(v2, "d", {a: 20});
-    const c = G.V().matchesValue("d", (d) => d && d.a > 10).toList();
-    expect(c).toEqual([v2]);
+    G.addEdgeLabel(e1, "e", {a: 10});
+    G.addEdgeLabel(e2, "e", {a: 20});
+    expect(G.V().matchesValue<{a: number}>("d", (d) => d && d.a > 10).toList()).toEqual([v2]);
+    expect(G.V().outE().matchesValue<{a: number}>("e", (e) => e && e.a > 10).toList()).toEqual([e2])
   });
 });

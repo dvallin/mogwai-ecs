@@ -8,7 +8,7 @@ export interface Storage {
 };
 export type StorageMap = Map<string, Storage>;
 
-export class NullStorage implements Storage {
+export class NullStorage<T extends Object> implements Storage {
   mask: BitSet;
 
   constructor() {
@@ -21,23 +21,23 @@ export class NullStorage implements Storage {
     }
   }
 
-  set(index: number, value: object): boolean {
+  set(index: number, value: T): boolean {
     this.resize(index+1);
     return this.mask.add(index);
   }
 
-  get(index: number): object {
-    return null;
+  get(index: number): T {
+    return undefined;
   }
 
   remove(index: number): boolean {
-    return this.remove(index);
+    return this.mask.remove(index);
   }
 }
 
-export class VectorStorage implements Storage {
+export class VectorStorage<T extends object> implements Storage {
   mask: BitSet;
-  data: Array<object>;
+  data: Array<T>;
 
   constructor () {
     this.mask = new BitSet();
@@ -53,18 +53,18 @@ export class VectorStorage implements Storage {
     }
   }
 
-  set(index: number, value: object): boolean {
+  set(index: number, value: T): boolean {
     this.resize(index+1);
     this.data[index] = value;
     return this.mask.add(index);
   }
 
-  get(index: number): object {
+  get(index: number): T {
     return this.data[index];
   }
 
   remove(index: number): boolean {
     this.data[index] = undefined;
-    return this.remove(index);
+    return this.mask.remove(index);
   }
 };

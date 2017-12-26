@@ -1,6 +1,6 @@
 {
   "name": "mogwai-ecs",
-  "version": "0.1.5",
+  "version": "0.1.6",
   "description": "A graph traversal enabled Entity Component System.",
   "main": "lib/index.js",
   "author": "Maximilian Schuler",
@@ -15,22 +15,26 @@
     "lazy.js": "^0.5.0"
   },
   "devDependencies": {
+    "@types/jest": "^21.1.9",
     "awesome-typescript-loader": "^3.2.3",
     "jest": "^21.1.0",
     "jest-cli": "^21.1.0",
     "shx": "^0.2.2",
     "source-map-loader": "^0.2.1",
+    "ts-jest": "^22.0.0",
     "typescript": "^2.5.2",
     "webpack": "^3.6.0"
   },
   "jest": {
+    "collectCoverage": true,
+    "mapCoverage": true,
     "moduleFileExtensions": [
       "ts",
-      "tsx",
       "js"
     ],
     "transform": {
-      "^.+\\.(ts|tsx)$": "<rootDir>/jest-preprocessor.js"
+      "^.+\\.ts$": "<rootDir>/node_modules/ts-jest",
+      "^.+\\.js$": "<rootDir>/node_modules/babel-jest"
     },
     "testMatch": [
       "**/*.spec.(ts|tsx|js)"
