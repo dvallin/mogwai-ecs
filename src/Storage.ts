@@ -1,14 +1,14 @@
 import { BitSet } from "hibitset-js";
 
-export interface Storage {
+export interface Storage<T> {
   mask: BitSet;
-  set: (index: number, value: object) => boolean;
-  get: (index: number) => object;
+  set: (index: number, value: T | undefined) => boolean;
+  get: (index: number) => T | undefined;
   remove: (index: number) => boolean;
 };
-export type StorageMap = Map<string, Storage>;
+export type StorageMap = Map<string, Storage<any>>;
 
-export class NullStorage<T extends Object> implements Storage {
+export class NullStorage<T> implements Storage<T> {
   mask: BitSet;
 
   constructor() {
@@ -16,17 +16,17 @@ export class NullStorage<T extends Object> implements Storage {
   }
 
   resize(index: number) {
-    if(this.mask.size() < index) {
+    if (this.mask.size() < index) {
       this.mask.grow(index);
     }
   }
 
-  set(index: number, value: T): boolean {
-    this.resize(index+1);
+  set(index: number, { }: T | undefined): boolean {
+    this.resize(index + 1);
     return this.mask.add(index);
   }
 
-  get(index: number): T {
+  get({ }: number): T | undefined {
     return undefined;
   }
 
@@ -35,31 +35,31 @@ export class NullStorage<T extends Object> implements Storage {
   }
 }
 
-export class VectorStorage<T extends object> implements Storage {
+export class VectorStorage<T extends object> implements Storage<T> {
   mask: BitSet;
-  data: Array<T>;
+  data: Array<T | undefined>;
 
-  constructor () {
+  constructor() {
     this.mask = new BitSet();
     this.data = [];
   }
 
   resize(index: number) {
-    while(this.data.length < index) {
-      this.data.push(undefined);
+    while (this.data.length < index) {
+      this.data.push(undefined)
     }
-    if(this.mask.size() < index) {
+    if (this.mask.size() < index) {
       this.mask.grow(index);
     }
   }
 
-  set(index: number, value: T): boolean {
-    this.resize(index+1);
+  set(index: number, value: T | undefined): boolean {
+    this.resize(index + 1);
     this.data[index] = value;
     return this.mask.add(index);
   }
 
-  get(index: number): T {
+  get(index: number): T | undefined {
     return this.data[index];
   }
 

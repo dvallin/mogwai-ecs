@@ -1,6 +1,5 @@
 import { Graph } from "./Graph"
-import { Storage, NullStorage, VectorStorage } from "./Storage";
-import { VertexTraverser, EdgeTraverser } from "./Traverser";
+import { Storage, NullStorage } from "./Storage";
 import { Fetcher } from "./Fetcher"
 import { EntityBuilder } from "./EntityBuilder"
 import { RelationBuilder } from "./RelationBuilder"
@@ -18,11 +17,11 @@ export class World {
     this.systems = new Map();
   }
 
-  registerComponent(name: string, storage: Storage = new NullStorage()) {
+  registerComponent<T>(name: string, storage: Storage<T> = new NullStorage<T>()) {
     this.graph.registerVertexLabel(name, storage);
   }
 
-  registerRelation(name: string, storage: Storage = new NullStorage()) {
+  registerRelation<T>(name: string, storage: Storage<T> = new NullStorage<T>()) {
     this.graph.registerEdgeLabel(name, storage);
   }
 
@@ -34,15 +33,15 @@ export class World {
     this.systems.forEach(system => system.execute(this));
   }
 
-  entity(v: number = undefined): EntityBuilder {
+  entity(v?: number): EntityBuilder {
     return new EntityBuilder(this).entity(v);
   }
 
-  relation(r: number = undefined): RelationBuilder {
+  relation(r?: number): RelationBuilder {
     return new RelationBuilder(this).relation(r);
   }
 
-  fetch(v: number = undefined): Fetcher {
+  fetch(v?: number): Fetcher {
     return new Fetcher(this.graph, v);
   }
 };

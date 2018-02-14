@@ -1,6 +1,6 @@
-import { World, System } from "./World";
+import { World } from "./World";
 import { VectorStorage } from "./Storage";
-import { VertexTraverser  } from "./Traverser";
+import { VertexTraverser } from "./Traverser";
 
 let W: World;
 describe("Fetcher", () => {
@@ -17,35 +17,35 @@ describe("Fetcher", () => {
 
     const window = W.entity()
       .with("window")
-      .with("dimensions", {w: 10, h: 10})
+      .with("dimensions", { w: 10, h: 10 })
       .close();
     const wall1 = W.entity()
       .with("wall")
-      .with("direction", {d: "south"})
+      .with("direction", { d: "south" })
       .rel(e => e.with("has").to(window).close())
       .close();
     const wall2 = W.entity()
       .with("wall")
-      .with("direction", {d: "north"})
+      .with("direction", { d: "north" })
       .close();
     const wall3 = W.entity()
       .with("wall")
-      .with("direction", {d: "south"})
+      .with("direction", { d: "south" })
       .close();
 
     W.entity()
       .with("room")
-      .with("dimensions", {w: 10, h: 10})
+      .with("dimensions", { w: 10, h: 10 })
       .rel(e => e.with("has").to(wall1).close())
       .rel(e => e.with("has").to(wall2).close())
       .close();
 
     W.entity()
       .with("room")
-      .with("dimensions", {w: 10, h: 10})
+      .with("dimensions", { w: 10, h: 10 })
       .rel((e) => e.with("has").to(wall3).close())
       .close();
-    W.entity().with("room").with("dimensions", {w: 20, h: 20}).close();
+    W.entity().with("room").with("dimensions", { w: 20, h: 20 }).close();
     W.entity().with("room").close();
   });
 
@@ -99,36 +99,36 @@ describe("Fetcher", () => {
     expect(rooms[0].walls[1].entity).toEqual(2);
     expect(rooms[0].windows.length).toEqual(1);
     expect(rooms[0].windows[0].entity).toEqual(0);
-    expect(rooms[0].windows[0].dimensions).toEqual({w: 10, h: 10});
+    expect(rooms[0].windows[0].dimensions).toEqual({ w: 10, h: 10 });
   });
-  
+
   it("updates edge and vertex labels", () => {
-    const v = W.entity(0).with("dataComponent", {data: false}).close();
+    const v = W.entity(0).with("dataComponent", { data: false }).close();
     const r = W.relation().from(0).to(1)
-      .with("dataRelation", {data: false})
+      .with("dataRelation", { data: false })
       .close();
 
     expect(W.fetch(v)
       .withComponents("dataComponent")
       .collect()[0])
-    .toEqual({entity: v, dataComponent: { data: false }});
+      .toEqual({ entity: v, dataComponent: { data: false } });
 
-    W.entity(v).update<{data: boolean}>("dataComponent", (d) => d.data = true).close();
+    W.entity(v).update<{ data: boolean }>("dataComponent", (d) => d.data = true).close();
 
     expect(W.fetch(v)
       .withComponents("dataComponent")
       .collect()[0])
-    .toEqual({entity: v, dataComponent: { data: true }});
+      .toEqual({ entity: v, dataComponent: { data: true } });
 
     expect(W.fetch(0)
       .relationsFetch("data", f => f.outE("dataRelation"), "dataRelation")
       .collect()[0].data[0])
-    .toEqual({relation: r, dataRelation: { data: false }});
-    
-    W.relation(r).update<{data: boolean}>("dataRelation", (d) => d.data = true).close();
+      .toEqual({ relation: r, dataRelation: { data: false } });
+
+    W.relation(r).update<{ data: boolean }>("dataRelation", (d) => d.data = true).close();
     expect(W.fetch(0)
       .relationsFetch("data", f => f.outE("dataRelation"), "dataRelation")
       .collect()[0].data[0])
-    .toEqual({relation: r, dataRelation: { data: true }});
+      .toEqual({ relation: r, dataRelation: { data: true } });
   });
 });

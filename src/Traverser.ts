@@ -1,20 +1,21 @@
-import { StorageMap } from "./Storage";
-import { Graph } from "./Graph";
-import * as B from "hibitset-js";
-import * as L from "lazy.js";
+import { Graph } from "./Graph"
+import { Storage } from "./Storage"
 
-const iterate = (mask) => {
-  const Lazy = L.strict();
+import * as B from "hibitset-js";
+import LazyJS from "lazy.js";
+
+const iterate = (mask: B.HierarchicalBitset) => {
+  const Lazy = LazyJS.strict();
   const iter = B.createIterator(mask);
   return Lazy
     .generate(() => iter.next())
-    .takeWhile(a => !a.done)
-    .map(a => a.value);
+    .takeWhile((a: any) => !a.done)
+    .map((a: any) => a.value);
 }
 
-const serialize = (mask) => {
-  const result = [];
-  B.iterate(mask, v => result.push(v));
+const serialize = (mask: B.HierarchicalBitset) => {
+  const result: number[] = [];
+  B.iterate(mask, (v: number) => result.push(v));
   return result;
 }
 
@@ -25,8 +26,8 @@ export abstract class Traverser {
   edgeSnapshots: Map<string, B.HierarchicalBitset>;
 
   constructor(graph: Graph, mask: B.HierarchicalBitset,
-      vertexSnapshots: Map<string, B.HierarchicalBitset>,
-      edgeSnapshots: Map<string, B.HierarchicalBitset>) {
+    vertexSnapshots: Map<string, B.HierarchicalBitset>,
+    edgeSnapshots: Map<string, B.HierarchicalBitset>) {
     this.graph = graph;
     this.mask = mask;
     this.vertexSnapshots = vertexSnapshots;
@@ -53,12 +54,12 @@ export abstract class Traverser {
     return B.createIterator(this.mask).next().value;
   }
 
-  select(...labels: Array<string>): object {
-    const result = {};
+  select(...labels: Array<string>): { [label: string]: { type: string, data: number[] } } {
+    const result: { [label: string]: { type: string, data: number[] } } = {};
     labels.forEach(label => {
-      let data;
-      let type;
-      if(this.vertexSnapshots.has(label)) {
+      let data: number[];
+      let type: string;
+      if (this.vertexSnapshots.has(label)) {
         type = "vertex_indices";
         data = serialize(this.vertexSnapshots.get(label));
       } else if (this.edgeSnapshots.has(label)) {
@@ -66,23 +67,24 @@ export abstract class Traverser {
         data = serialize(this.edgeSnapshots.get(label));
       } else {
         type = "unknown";
+        data = []
       }
       result[label] = { data, type };
     });
     return result;
   }
 
-  V(v: number): VertexTraverser {
+  V(v?: number): VertexTraverser {
     return this.graph.V(v, this.vertexSnapshots, this.edgeSnapshots)
   }
 }
 
 export class VertexTraverser extends Traverser {
   hasLabel(...labels: Array<string>): VertexTraverser {
-    const masks = [];
+    const masks: B.HierarchicalBitset[] = [];
     labels.forEach(label => {
-        const storage = this.graph.vertexLabels.get(label) || { mask: B.zero() };
-        masks.push(storage.mask);
+      const storage = this.graph.vertexLabels.get(label) || { mask: B.zero() };
+      masks.push(storage.mask);
     });
     return new VertexTraverser(this.graph, B.and(this.mask, B.and(...masks)),
       this.vertexSnapshots, this.edgeSnapshots);
@@ -91,11 +93,30 @@ export class VertexTraverser extends Traverser {
   matchesValue<T extends object>(key: string, matcher: (value: T) => boolean): VertexTraverser {
     const values = this.graph.vertexLabels.get(key);
     const mask = new B.BitSet(this.mask.size());
-    B.iterate(this.mask, (v) => {
-      if(matcher(values.get(v) as T)) {
-        mask.add(v);
-      }
-    });
+    if (values !== undefined) {
+      B.iterate(this.mask, (v: number) => {
+        const value = values.get(v) as T
+        if (value && matcher(value)) {
+          mask.add(v);
+        }
+      });
+    }
+    return new VertexTraverser(this.graph, mask, this.vertexSnapshots, this.edgeSnapshots);
+  }
+
+  matchesDegree(matcher: (inDegree: number, outDegree: number) => boolean): VertexTraverser {
+    const ins = this.graph.vertexLabels.get("in");
+    const outs = this.graph.vertexLabels.get("out");
+    const mask = new B.BitSet(this.mask.size());
+    if (ins !== undefined && outs !== undefined) {
+      B.iterate(this.mask, (v: number) => {
+        const inRelations = ins.get(v) as Set<number>
+        const outRelations = outs.get(v) as Set<number>
+        if (inRelations && outRelations && matcher(inRelations.size, outRelations.size)) {
+          mask.add(v);
+        }
+      });
+    }
     return new VertexTraverser(this.graph, mask, this.vertexSnapshots, this.edgeSnapshots);
   }
 
@@ -127,18 +148,19 @@ export class VertexTraverser extends Traverser {
 
   bothE(...labels: Array<string>): EdgeTraverser {
     return new EdgeTraverser(this.graph, this.traverse("in", "out"),
-      this.vertexSnapshots, this.edgeSnapshots);
+      this.vertexSnapshots, this.edgeSnapshots)
+      .hasLabel(...labels);
   }
 
   or(...snapshots: Array<string>): VertexTraverser {
-    const masks = [];
+    const masks: B.HierarchicalBitset[] = [];
     snapshots.forEach(snapshot => masks.push(this.vertexSnapshots.get(snapshot)));
     return new VertexTraverser(this.graph, B.or(...masks),
       this.vertexSnapshots, this.edgeSnapshots);
   }
 
   and(...snapshots: Array<string>): VertexTraverser {
-    const masks = [];
+    const masks: B.HierarchicalBitset[] = [];
     snapshots.forEach(snapshot => masks.push(this.vertexSnapshots.get(snapshot)));
     return new VertexTraverser(this.graph, B.and(...masks),
       this.vertexSnapshots, this.edgeSnapshots);
@@ -153,36 +175,39 @@ export class VertexTraverser extends Traverser {
     const mask = new B.BitSet(this.mask.size());
     labels.forEach(label => {
       const traversable = this.graph.vertexLabels.get(label);
-      B.iterate(B.and(this.mask, traversable.mask),
-        (e) => (<Set<number>> traversable.get(e)).forEach(target => mask.add(target))
-      );
+      if (traversable !== undefined) {
+        B.iterate(B.and(this.mask, traversable.mask),
+          (e: number) => (<Set<number>>traversable.get(e)).forEach(target => mask.add(target))
+        );
+      }
     });
     return mask;
   }
 
-  values(...labels: Array<string>): L.Lazy<object> {
-    const Lazy = L.strict();
-    if(labels.length == 0) {
-      this.graph.vertexLabels.forEach((value, key) => {
-        if(key !== "in" && key !== "out") {
+  values(...labels: Array<string>): LazyJS.Sequence<object> {
+    const Lazy = LazyJS.strict();
+    if (labels.length == 0) {
+      this.graph.vertexLabels.forEach(({ }, key) => {
+        if (key !== "in" && key !== "out") {
           labels.push(key)
         }
       })
     }
     return iterate(this.mask)
-      .map(v => {
+      .map((v: number) => {
         return Lazy(labels)
-          .map(label => this.graph.vertexLabels.get(label).get(v))
-          .filter(value => value !== null && value !== undefined)
+          .map((label: string) => this.graph.vertexLabels.get(label))
+          .map((storage: Storage<any> | undefined) => storage && storage.get(v))
+          .filter((value: object) => value !== null && value !== undefined)
       })
       .flatten()
   }
 
   labels(): Array<string> {
     const data: Array<string> = [];
-    B.iterate(this.mask, (v) => {
+    B.iterate(this.mask, (v: number) => {
       this.graph.vertexLabels.forEach((value, key) => {
-        if(key !== "in" && key !== "out" && value.mask.contains(v)) {
+        if (key !== "in" && key !== "out" && value.mask.contains(v)) {
           data.push(key);
         }
       });
@@ -197,7 +222,7 @@ export class VertexTraverser extends Traverser {
 
   let(label: string, mapper: (t: VertexTraverser) => Traverser): VertexTraverser {
     const other = mapper(this);
-    if(other instanceof EdgeTraverser) {
+    if (other instanceof EdgeTraverser) {
       this.edgeSnapshots.set(label, other.mask);
     } else {
       this.vertexSnapshots.set(label, other.mask);
@@ -205,21 +230,21 @@ export class VertexTraverser extends Traverser {
     return this;
   }
 
-  edgeBuilder() : EdgeBuilder {
+  edgeBuilder(): EdgeBuilder {
     return new EdgeBuilder(this);
   }
 }
 
 export class EdgeTraverser extends Traverser {
   hasLabel(...labels: Array<string>): EdgeTraverser {
-    if(labels.length == 0) {
+    if (labels.length == 0) {
       return this;
     }
 
-    const masks = [];
+    const masks: B.HierarchicalBitset[] = [];
     labels.forEach(label => {
-        const storage = this.graph.edgeLabels.get(label) || { mask: B.zero() };
-        masks.push(storage.mask);
+      const storage = this.graph.edgeLabels.get(label) || { mask: B.zero() };
+      masks.push(storage.mask);
     });
     return new EdgeTraverser(this.graph, B.and(this.mask, B.or(...masks)),
       this.vertexSnapshots, this.edgeSnapshots);
@@ -228,47 +253,50 @@ export class EdgeTraverser extends Traverser {
   matchesValue<T extends object>(key: string, matcher: (value: T) => boolean): EdgeTraverser {
     const values = this.graph.edgeLabels.get(key);
     const mask = new B.BitSet(this.mask.size());
-    B.iterate(this.mask, (e) => {
-      if(matcher(values.get(e) as T)) {
-        mask.add(e);
-      }
-    });
+    if (values) {
+      B.iterate(this.mask, (e: number) => {
+        if (matcher(values.get(e) as T)) {
+          mask.add(e);
+        }
+      });
+    }
     return new EdgeTraverser(this.graph, mask, this.vertexSnapshots, this.edgeSnapshots);
   }
 
   in(): VertexTraverser {
-     return this.step("in");
+    return this.step("in");
   }
 
   out(): VertexTraverser {
-     return this.step("out");
+    return this.step("out");
   }
 
   both(): VertexTraverser {
-     return this.step("both");
+    return this.step("both");
   }
 
   step(direction: string): VertexTraverser {
     const vertices = this.graph.edgeLabels.get("->");
     const mask = new B.BitSet(this.mask.size());
-    B.iterate(this.mask, (e) => {
-      const v = vertices.get(e);
-      let targets;
-      switch(direction) {
-        case "in": targets = [v[0]]; break;
-        case "out": targets = [v[1]]; break;
-        case "both": targets = v; break;
-      }
-      targets.forEach(target => mask.add(target));
-    });
+    if (vertices) {
+      B.iterate(this.mask, (e: number) => {
+        const v = vertices.get(e) as number[];
+        let targets = v;
+        switch (direction) {
+          case "in": targets = [v[0]]; break;
+          case "out": targets = [v[1]]; break;
+        }
+        targets.forEach(target => mask.add(target));
+      });
+    }
     return new VertexTraverser(this.graph, mask, this.vertexSnapshots, this.edgeSnapshots);
   }
 
   labels(): Array<string> {
     const data: Array<string> = [];
-    B.iterate(this.mask, (e) => {
+    B.iterate(this.mask, (e: number) => {
       this.graph.edgeLabels.forEach((value, key) => {
-        if(key !== "->" && value.mask.contains(e)) {
+        if (key !== "->" && value.mask.contains(e)) {
           data.push(key);
         }
       });
@@ -276,20 +304,21 @@ export class EdgeTraverser extends Traverser {
     return data;
   }
 
-  values(...labels: Array<string>): L.Lazy<object> {
-    const Lazy = L.strict();
-    if(labels.length == 0) {
-      this.graph.edgeLabels.forEach((value, key) => {
-        if(key !== "->") {
+  values(...labels: Array<string>): LazyJS.Sequence<object> {
+    const Lazy = LazyJS.strict();
+    if (labels.length == 0) {
+      this.graph.edgeLabels.forEach(({ }, key) => {
+        if (key !== "->") {
           labels.push(key)
         }
       })
     }
     return iterate(this.mask)
-      .map(e => {
+      .map((e: number) => {
         return Lazy(labels)
-          .map(label => this.graph.edgeLabels.get(label).get(e))
-          .filter(value => value !== null && value !== undefined)
+          .map((label: string) => this.graph.edgeLabels.get(label))
+          .map((storage: Storage<any> | undefined) => storage && storage.get(e))
+          .filter((value: object) => value !== null && value !== undefined)
       })
       .flatten()
   }
@@ -303,7 +332,7 @@ export class EdgeTraverser extends Traverser {
 export class EdgeBuilder {
   context: VertexTraverser;
   e: [B.HierarchicalBitset, B.HierarchicalBitset];
-  l: string;
+  l: string | undefined;
 
   constructor(context: VertexTraverser) {
     this.context = context;
@@ -327,11 +356,10 @@ export class EdgeBuilder {
   }
 
   build(): VertexTraverser {
-    const self = this;
-    B.iterate(this.e[0], (v0) => {
-      B.iterate(this.e[1], (v1) => {
+    B.iterate(this.e[0], (v0: number) => {
+      B.iterate(this.e[1], (v1: number) => {
         const e = this.context.graph.addEdge(v0, v1);
-        if(this.l) {
+        if (this.l) {
           this.context.graph.addEdgeLabel(e, this.l, undefined);
         }
       });
