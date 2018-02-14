@@ -1,8 +1,9 @@
 import { Graph } from "./Graph"
 import { Storage } from "./Storage"
 
-import * as B from "hibitset-js";
+import * as B from "hibitset-js/lib";
 import LazyJS from "lazy.js";
+import { HierarchicalBitset } from "hibitset-js/lib";
 
 const iterate = (mask: B.HierarchicalBitset) => {
   const Lazy = LazyJS.strict();
@@ -50,7 +51,7 @@ export abstract class Traverser {
     return !this.some();
   }
 
-  first(): number {
+  first(): number | undefined {
     return B.createIterator(this.mask).next().value;
   }
 
@@ -61,10 +62,10 @@ export abstract class Traverser {
       let type: string;
       if (this.vertexSnapshots.has(label)) {
         type = "vertex_indices";
-        data = serialize(this.vertexSnapshots.get(label));
+        data = serialize(this.vertexSnapshots.get(label) as HierarchicalBitset);
       } else if (this.edgeSnapshots.has(label)) {
         type = "edge_indices";
-        data = serialize(this.edgeSnapshots.get(label));
+        data = serialize(this.edgeSnapshots.get(label) as HierarchicalBitset);
       } else {
         type = "unknown";
         data = []
@@ -83,7 +84,7 @@ export class VertexTraverser extends Traverser {
   hasLabel(...labels: Array<string>): VertexTraverser {
     const masks: B.HierarchicalBitset[] = [];
     labels.forEach(label => {
-      const storage = this.graph.vertexLabels.get(label) || { mask: B.zero() };
+      const storage = this.graph.vertexLabels.get(label) || { mask: B.zero(0) };
       masks.push(storage.mask);
     });
     return new VertexTraverser(this.graph, B.and(this.mask, B.and(...masks)),
@@ -154,14 +155,14 @@ export class VertexTraverser extends Traverser {
 
   or(...snapshots: Array<string>): VertexTraverser {
     const masks: B.HierarchicalBitset[] = [];
-    snapshots.forEach(snapshot => masks.push(this.vertexSnapshots.get(snapshot)));
+    snapshots.forEach(snapshot => masks.push(this.vertexSnapshots.get(snapshot) as HierarchicalBitset));
     return new VertexTraverser(this.graph, B.or(...masks),
       this.vertexSnapshots, this.edgeSnapshots);
   }
 
   and(...snapshots: Array<string>): VertexTraverser {
     const masks: B.HierarchicalBitset[] = [];
-    snapshots.forEach(snapshot => masks.push(this.vertexSnapshots.get(snapshot)));
+    snapshots.forEach(snapshot => masks.push(this.vertexSnapshots.get(snapshot) as HierarchicalBitset));
     return new VertexTraverser(this.graph, B.and(...masks),
       this.vertexSnapshots, this.edgeSnapshots);
   }
@@ -184,7 +185,7 @@ export class VertexTraverser extends Traverser {
     return mask;
   }
 
-  values(...labels: Array<string>): LazyJS.Sequence<object> {
+  values(...labels: Array<string>): LazyJS.Sequence<any> {
     const Lazy = LazyJS.strict();
     if (labels.length == 0) {
       this.graph.vertexLabels.forEach(({ }, key) => {
@@ -198,7 +199,7 @@ export class VertexTraverser extends Traverser {
         return Lazy(labels)
           .map((label: string) => this.graph.vertexLabels.get(label))
           .map((storage: Storage<any> | undefined) => storage && storage.get(v))
-          .filter((value: object) => value !== null && value !== undefined)
+          .filter((value: any) => value !== null && value !== undefined)
       })
       .flatten()
   }
@@ -243,7 +244,7 @@ export class EdgeTraverser extends Traverser {
 
     const masks: B.HierarchicalBitset[] = [];
     labels.forEach(label => {
-      const storage = this.graph.edgeLabels.get(label) || { mask: B.zero() };
+      const storage = this.graph.edgeLabels.get(label) || { mask: B.zero(0) };
       masks.push(storage.mask);
     });
     return new EdgeTraverser(this.graph, B.and(this.mask, B.or(...masks)),
@@ -304,7 +305,7 @@ export class EdgeTraverser extends Traverser {
     return data;
   }
 
-  values(...labels: Array<string>): LazyJS.Sequence<object> {
+  values(...labels: Array<string>): LazyJS.Sequence<any> {
     const Lazy = LazyJS.strict();
     if (labels.length == 0) {
       this.graph.edgeLabels.forEach(({ }, key) => {
@@ -336,17 +337,17 @@ export class EdgeBuilder {
 
   constructor(context: VertexTraverser) {
     this.context = context;
-    this.e = [0, 0];
+    this.e = [B.zero(0), B.zero(0)];
     this.l = undefined;
   }
 
   from(snapshot: string) {
-    this.e[0] = this.context.vertexSnapshots.get(snapshot);
+    this.e[0] = this.context.vertexSnapshots.get(snapshot) as HierarchicalBitset;
     return this;
   }
 
   to(snapshot: string) {
-    this.e[1] = this.context.vertexSnapshots.get(snapshot);
+    this.e[1] = this.context.vertexSnapshots.get(snapshot) as HierarchicalBitset;
     return this;
   }
 

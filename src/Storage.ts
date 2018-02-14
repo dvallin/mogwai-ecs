@@ -1,4 +1,4 @@
-import { BitSet } from "hibitset-js";
+import { BitSet } from "hibitset-js/lib";
 
 export interface Storage<T> {
   mask: BitSet;

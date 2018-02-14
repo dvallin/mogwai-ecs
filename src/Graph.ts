@@ -1,4 +1,4 @@
-import { BitSet, HierarchicalBitset, one } from "hibitset-js";
+import { BitSet, HierarchicalBitset, one } from "hibitset-js/lib";
 import { Storage, StorageMap, NullStorage, VectorStorage } from "./Storage";
 import { VertexTraverser, EdgeTraverser } from "./Traverser";
 
