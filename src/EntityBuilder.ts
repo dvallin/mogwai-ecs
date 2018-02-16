@@ -36,7 +36,14 @@ export class EntityBuilder {
   }
 
   close(): number {
-    const v = this.v || this.world.graph.addVertex()
+
+    let v: number
+    if (this.v === undefined) {
+      v = this.world.graph.addVertex()
+    } else {
+      v = this.v
+    }
+
     this.components.forEach(([component, data]) =>
       this.world.graph.addVertexLabel(v, component, data)
     );

@@ -40,13 +40,20 @@ export class RelationBuilder {
   }
 
   close(): number {
-    if (this.v0 === undefined) {
-      throw Error('must specify a start for a relation')
+
+    let e: number
+    if (this.e === undefined) {
+      if (this.v0 === undefined) {
+        throw Error('must specify a start for a relation')
+      }
+      if (this.v1 === undefined) {
+        throw Error('must specify an end for a relation')
+      }
+      e = this.world.graph.addEdge(this.v0, this.v1)
+    } else {
+      e = this.e
     }
-    if (this.v1 === undefined) {
-      throw Error('must specify an end for a relation')
-    }
-    const e = this.e || this.world.graph.addEdge(this.v0, this.v1);
+
     this.components.forEach(([relation, data]) => {
       this.world.graph.addEdgeLabel(e, relation, data);
     });
