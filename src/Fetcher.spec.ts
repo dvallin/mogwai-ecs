@@ -128,7 +128,7 @@ describe("Fetcher", () => {
     W.relation(r).update<{ data: boolean }>("dataRelation", (d) => d.data = true).close();
     expect(W.fetch(0)
       .relationsFetch("data", f => f.outE("dataRelation"), "dataRelation")
-      .collect()[0].data[0])
+      .stream().first().data[0])
       .toEqual({ relation: r, dataRelation: { data: true } });
   });
 });

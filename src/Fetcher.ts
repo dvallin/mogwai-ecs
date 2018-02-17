@@ -1,6 +1,7 @@
 
 import { Graph } from "./Graph"
 import { VertexTraverser, EdgeTraverser } from "./Traverser";
+import LazyJS from "lazy.js";
 
 export class Fetcher {
   graph: Graph;

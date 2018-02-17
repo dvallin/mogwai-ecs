@@ -2,13 +2,12 @@ import { Graph } from "./Graph"
 import { Storage } from "./Storage"
 
 import * as B from "hibitset-js/lib";
-import LazyJS from "lazy.js";
+import LazyJS, { strict } from "lazy.js";
 import { HierarchicalBitset } from "hibitset-js/lib";
 
 const iterate = (mask: B.HierarchicalBitset) => {
-  const Lazy = LazyJS.strict();
   const iter = B.createIterator(mask);
-  return Lazy
+  return strict()
     .generate(() => iter.next())
     .takeWhile((a: any) => !a.done)
     .map((a: any) => a.value);
@@ -186,7 +185,6 @@ export class VertexTraverser extends Traverser {
   }
 
   values(...labels: Array<string>): LazyJS.Sequence<any> {
-    const Lazy = LazyJS.strict();
     if (labels.length == 0) {
       this.graph.vertexLabels.forEach(({ }, key) => {
         if (key !== "in" && key !== "out") {
@@ -196,7 +194,7 @@ export class VertexTraverser extends Traverser {
     }
     return iterate(this.mask)
       .map((v: number) => {
-        return Lazy(labels)
+        return strict()(labels)
           .map((label: string) => this.graph.vertexLabels.get(label))
           .map((storage: Storage<any> | undefined) => storage && storage.get(v))
           .filter((value: any) => value !== null && value !== undefined)
@@ -306,7 +304,6 @@ export class EdgeTraverser extends Traverser {
   }
 
   values(...labels: Array<string>): LazyJS.Sequence<any> {
-    const Lazy = LazyJS.strict();
     if (labels.length == 0) {
       this.graph.edgeLabels.forEach(({ }, key) => {
         if (key !== "->") {
@@ -316,7 +313,7 @@ export class EdgeTraverser extends Traverser {
     }
     return iterate(this.mask)
       .map((e: number) => {
-        return Lazy(labels)
+        return strict()(labels)
           .map((label: string) => this.graph.edgeLabels.get(label))
           .map((storage: Storage<any> | undefined) => storage && storage.get(e))
           .filter((value: object) => value !== null && value !== undefined)
