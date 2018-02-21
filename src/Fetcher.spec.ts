@@ -123,12 +123,12 @@ describe("Fetcher", () => {
     expect(W.fetch(0)
       .relationsFetch("data", f => f.outE("dataRelation"), "dataRelation")
       .collect()[0].data[0])
-      .toEqual({ relation: r, dataRelation: { data: false } });
+      .toEqual({ relation: r, dataRelation: { data: false }, other: 1 });
 
     W.relation(r).update<{ data: boolean }>("dataRelation", (d) => d.data = true).close();
     expect(W.fetch(0)
       .relationsFetch("data", f => f.outE("dataRelation"), "dataRelation")
       .stream().first().data[0])
-      .toEqual({ relation: r, dataRelation: { data: true } });
+      .toEqual({ relation: r, dataRelation: { data: true }, other: 1 });
   });
 });

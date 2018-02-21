@@ -53,9 +53,14 @@ export class Fetcher {
           fetchedRelations[r[0]] = r[1](this.graph.V(entity))
             .stream()
             .map((relation: number) => {
+              const edge = this.graph.getEdge(relation, "->", ...r[2])
+              const edgeRelation = edge["->"] as number[]
+              delete edge["->"]
+              const other = edgeRelation[0] === entity ? edgeRelation[1] : edgeRelation[0]
               return {
                 relation,
-                ...this.graph.getEdge(relation, ...r[2]),
+                other,
+                ...edge,
               }
             })
             .toArray();
