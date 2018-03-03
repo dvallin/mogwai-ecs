@@ -68,3 +68,34 @@ export class VectorStorage<T extends object> implements Storage<T> {
     return this.mask.remove(index);
   }
 };
+
+export class MapStorage<T extends object> implements Storage<T> {
+  mask: BitSet;
+  data: Map<number, T | undefined>;
+
+  constructor() {
+    this.mask = new BitSet();
+    this.data = new Map();
+  }
+
+  resize(index: number) {
+    if (this.mask.size() < index) {
+      this.mask.grow(index);
+    }
+  }
+
+  set(index: number, value: T | undefined): boolean {
+    this.resize(index + 1);
+    this.data.set(index, value)
+    return this.mask.add(index);
+  }
+
+  get(index: number): T | undefined {
+    return this.data.get(index);
+  }
+
+  remove(index: number): boolean {
+    this.data.delete(index)
+    return this.mask.remove(index);
+  }
+}
