@@ -1,27 +1,35 @@
 import { World } from "./World"
 import { RelationBuilder } from "./RelationBuilder"
+import { Vertex } from "./Graph"
 
 export class EntityBuilder {
   world: World;
-  components: Array<[string, any]>;
+  addComponents: Array<[string, any]>;
+  removeComponents: Array<string>;
   updates: Array<[string, (d: any) => void]>;
   relations: Array<(b: RelationBuilder) => void>;
-  v: number | undefined;
+  v: Vertex | undefined;
 
   constructor(world: World) {
     this.world = world;
-    this.components = [];
+    this.addComponents = [];
+    this.removeComponents = [];
     this.relations = [];
     this.updates = [];
   }
 
-  entity(v?: number) {
+  entity(v?: Vertex) {
     this.v = v;
     return this;
   }
 
   with<T>(component: string, data?: T) {
-    this.components.push([component, data]);
+    this.addComponents.push([component, data]);
+    return this;
+  }
+
+  withOut<T>(component: string) {
+    this.removeComponents.push(component);
     return this;
   }
 
@@ -35,8 +43,14 @@ export class EntityBuilder {
     return this;
   }
 
-  close(): number {
+  delete(): void {
+    if (this.v === undefined) {
+      throw Error("missing vertex id")
+    }
+    this.world.graph.removeVertex(this.v)
+  }
 
+  close(): number {
     let v: number
     if (this.v === undefined) {
       v = this.world.graph.addVertex()
@@ -44,8 +58,11 @@ export class EntityBuilder {
       v = this.v
     }
 
-    this.components.forEach(([component, data]) =>
+    this.addComponents.forEach(([component, data]) =>
       this.world.graph.addVertexLabel(v, component, data)
+    );
+    this.removeComponents.forEach((component) =>
+      this.world.graph.removeVertexLabel(v, component)
     );
     this.updates.forEach(([component, updater]) => {
       updater(this.world.graph.getVertex(v, component)[component])

@@ -33,10 +33,10 @@ export class Graph {
     this.edgeLabels.set(name, storage);
   }
 
-  private setVertexLabel<T>(label: string, vertex: number, value: T | undefined) {
+  private setVertexLabel<T>(label: string, vertex: Vertex, value: T | undefined) {
     this.vertexLabels.get(label)!.set(vertex, value);
   }
-  private setEdgeLabel<T>(label: string, edge: number, value: T | undefined) {
+  private setEdgeLabel<T>(label: string, edge: Edge, value: T | undefined) {
     this.edgeLabels.get(label)!.set(edge, value)
   }
 
@@ -88,23 +88,23 @@ export class Graph {
     this.edgeLabels.forEach(label => label.remove(e))
   }
 
-  addVertexLabel<T extends object>(v: number, name: string, value?: T) {
+  addVertexLabel<T extends object>(v: Vertex, name: string, value?: T) {
     this.setVertexLabel(name, v, value)
   }
 
-  addEdgeLabel<T extends object>(e: number, name: string, value?: T) {
+  addEdgeLabel<T extends object>(e: Edge, name: string, value?: T) {
     this.setEdgeLabel(name, e, value)
   }
 
-  removeVertexLabel<T>(label: string, vertex: number) {
+  removeVertexLabel<T>(vertex: Vertex, label: string) {
     this.vertexLabels.get(label)!.remove(vertex)
   }
 
-  removeEdgeLabel<T>(label: string, edge: number) {
+  removeEdgeLabel<T>(edge: Edge, label: string) {
     this.edgeLabels.get(label)!.remove(edge)
   }
 
-  appendValue<T>(v: number, name: string, value: T) {
+  appendValue<T>(v: Vertex, name: string, value: T) {
     const storage: Storage<Set<T>> | undefined = this.vertexLabels.get(name)
     if (storage != undefined) {
       const container = storage.get(v) || new Set<T>();
@@ -113,7 +113,7 @@ export class Graph {
     }
   }
 
-  removeValue<T>(v: number, name: string, value: T) {
+  removeValue<T>(v: Vertex, name: string, value: T) {
     const storage: Storage<Set<T>> | undefined = this.vertexLabels.get(name)
     if (storage != undefined) {
       const container = storage.get(v) || new Set<T>();
@@ -122,7 +122,7 @@ export class Graph {
     }
   }
 
-  getVertex(v: number, ...labels: Array<string>): { [key: string]: object } {
+  getVertex(v: Vertex, ...labels: Array<string>): { [key: string]: object } {
     const result: { [key: string]: object } = {};
     labels.forEach(label => {
       const storage: Storage<any> | undefined = this.vertexLabels.get(label)
@@ -133,7 +133,7 @@ export class Graph {
     return result;
   }
 
-  getEdge(e: number, ...labels: Array<string>): { [key: string]: object } {
+  getEdge(e: Edge, ...labels: Array<string>): { [key: string]: object } {
     const result: { [key: string]: object } = {};
     labels.forEach(label => {
       const storage: Storage<any> | undefined = this.edgeLabels.get(label)
@@ -144,7 +144,7 @@ export class Graph {
     return result;
   }
 
-  V(v?: number,
+  V(v?: Vertex,
     vertexSnapshots: Map<string, HierarchicalBitset> = new Map(),
     edgeSnapshots: Map<string, HierarchicalBitset> = new Map()): VertexTraverser {
     if (v !== undefined) {
@@ -158,7 +158,7 @@ export class Graph {
     }
   }
 
-  E(e?: number): EdgeTraverser {
+  E(e?: Edge): EdgeTraverser {
     if (e !== undefined) {
       const mask = new BitSet(e + 1);
       if (e < this.e) {
