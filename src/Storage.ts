@@ -3,7 +3,7 @@ import { BitSet } from "hibitset-js/lib";
 export interface Storage<T> {
   mask: BitSet;
   set: (index: number, value: T | undefined) => boolean;
-  get: (index: number) => T | undefined;
+  get: (index: number) => T | null | undefined;
   remove: (index: number) => boolean;
 };
 export type StorageMap = Map<string, Storage<any>>;
@@ -26,8 +26,8 @@ export class NullStorage<T> implements Storage<T> {
     return this.mask.add(index);
   }
 
-  get({ }: number): T | undefined {
-    return undefined;
+  get(index: number): T | null | undefined {
+    return this.mask.contains(index) ? null : undefined;
   }
 
   remove(index: number): boolean {
