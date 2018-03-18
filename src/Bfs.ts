@@ -48,12 +48,16 @@ export class Bfs {
 
     public findPath(from: Vertex, to: Vertex,
         children: (node: number) => number[] = this.defaultChildrenFunction,
+        discover: (parent: number, child: number) => void = () => { },
         finishedLayer: (layer: number[]) => void = () => { }
     ): number[] {
         const path: number[] = []
         const parentsLinks: Map<number, number> = new Map()
         const found = search(from, to, children,
-            (parent: number, child: number) => { parentsLinks.set(child, parent) },
+            (parent: number, child: number) => {
+                parentsLinks.set(child, parent)
+                discover(parent, child)
+            },
             finishedLayer
         )
         if (found) {
