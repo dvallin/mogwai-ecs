@@ -229,6 +229,14 @@ export class VertexTraverser extends Traverser {
     return this;
   }
 
+  from(label: string): VertexTraverser {
+    const mask = this.vertexSnapshots.get(label);
+    if (mask !== undefined) {
+      this.mask = mask
+    }
+    return this;
+  }
+
   edgeBuilder(): EdgeBuilder {
     return new EdgeBuilder(this);
   }
@@ -323,6 +331,14 @@ export class EdgeTraverser extends Traverser {
 
   as(label: string): EdgeTraverser {
     this.edgeSnapshots.set(label, this.mask);
+    return this;
+  }
+
+  from(label: string): EdgeTraverser {
+    const mask = this.edgeSnapshots.get(label);
+    if (mask !== undefined) {
+      this.mask = mask
+    }
     return this;
   }
 }

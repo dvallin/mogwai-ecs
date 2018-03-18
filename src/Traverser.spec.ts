@@ -1,5 +1,6 @@
 import { Graph } from "./Graph";
 import { VectorStorage } from "./Storage"
+import { VertexTraverser } from "./Traverser"
 
 describe("Traverser", () => {
   it("traverses vertices via edges", () => {
