@@ -64,7 +64,6 @@ export class Fetcher {
               }
             })
             .toArray();
-
         })
         return {
           entity,

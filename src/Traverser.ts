@@ -1,4 +1,4 @@
-import { Graph } from "./Graph"
+import { Graph, Vertex } from "./Graph"
 import { Storage } from "./Storage"
 
 import * as B from "hibitset-js/lib";

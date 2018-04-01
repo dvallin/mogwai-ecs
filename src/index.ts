@@ -4,7 +4,7 @@ export * from "./World"
 
 export * from "./Traverser"
 export * from "./Fetcher"
-export * from "./Bfs"
+export * from "./Search"
 
 export * from "./EntityBuilder"
 export * from "./RelationBuilder"
