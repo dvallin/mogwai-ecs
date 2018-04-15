@@ -90,13 +90,42 @@ export class VertexTraverser extends Traverser {
       this.vertexSnapshots, this.edgeSnapshots);
   }
 
+  ofPartition<T extends object>(key: string, representant: T): VertexTraverser {
+    const values = this.graph.vertexLabels.get(key)
+    const mask = new B.BitSet(this.mask.size());
+    if (values !== undefined) {
+      const partition: number[] | undefined = values.getPartition(representant)
+      if (partition !== undefined) {
+        partition.forEach((v: number) => mask.add(v))
+      }
+    }
+    return new VertexTraverser(this.graph, mask, this.vertexSnapshots, this.edgeSnapshots);
+  }
+
+  partition<T extends object>(key: string): VertexTraverser {
+    const values = this.graph.vertexLabels.get(key)
+    const mask = new B.BitSet(this.mask.size());
+    if (values !== undefined) {
+      B.iterate(this.mask, (v: number) => {
+        const representant = values.get(v) as T
+        if (representant !== undefined && representant !== null) {
+          const partition: number[] | undefined = values.getPartition(representant)
+          if (partition !== undefined) {
+            partition.forEach((v: number) => mask.add(v))
+          }
+        }
+      });
+    }
+    return new VertexTraverser(this.graph, mask, this.vertexSnapshots, this.edgeSnapshots);
+  }
+
   matchesValue<T extends object>(key: string, matcher: (value: T) => boolean): VertexTraverser {
     const values = this.graph.vertexLabels.get(key);
     const mask = new B.BitSet(this.mask.size());
     if (values !== undefined) {
       B.iterate(this.mask, (v: number) => {
         const value = values.get(v) as T
-        if (value && matcher(value)) {
+        if (value !== undefined && value !== null && matcher(value)) {
           mask.add(v);
         }
       });
