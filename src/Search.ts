@@ -62,12 +62,12 @@ export class Search {
     public constructor(private g: Graph) { }
 
     get defaultChildrenFunction(): (node: Vertex) => Vertex[] {
-        return (node: number) => this.g.V(node).out().toList()
+        return (node: number) => this.g.V([node]).out().toList()
     }
 
     get defaultTraverseFunction(): (node: Vertex) => { relation: Edge, other: Vertex }[] {
         return (node: number) => {
-            return new Fetcher(this.g, node)
+            return new Fetcher(this.g, [node])
                 .relationsFetch("outE", f => f.outE())
                 .first()
                 .outE

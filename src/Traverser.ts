@@ -75,7 +75,7 @@ export abstract class Traverser {
     }
 
     V(v?: number): VertexTraverser {
-        return this.graph.V(v, this.vertexSnapshots, this.edgeSnapshots)
+        return this.graph.V(v === undefined ? undefined : [v], this.vertexSnapshots, this.edgeSnapshots)
     }
 }
 
