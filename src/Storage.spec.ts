@@ -30,7 +30,7 @@ describe("NullStorage", () => {
 
 describe("PartitionedStorage", () => {
     it("sets gets and deletes values", () => {
-        const s = new PartitionedStorage(new MapStorage<Boxed<{ d: string }>>(), (b) => b.d.length)
+        const s = new PartitionedStorage(new MapStorage<Boxed<{ d: string }>>(), (b) => b.d.length.toString())
         s.set(0, new Boxed({ d: "ab" }))
         s.set(1, new Boxed({ d: "cd" }))
         s.set(2, new Boxed({ d: "abc" }))
